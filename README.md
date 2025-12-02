@@ -6,6 +6,7 @@
 
 - 🎵 **Gestión de Playlists Multi-plataforma**: Conecta con Spotify, Suno y SoundCloud
 - 🔄 **Sincronización**: Compara y alinea canciones entre plataformas
+- 🔀 **Combinación de Playlists**: Combina listas de múltiples plataformas manteniendo orden y eliminando duplicados
 - 🔍 **Detección de Faltantes**: Identifica canciones que faltan en alguna plataforma
 - 📊 **Reportes**: Genera reportes detallados en múltiples formatos (JSON, Markdown, HTML, texto)
 - ✅ **Verificación de Completitud**: Revisa que todas las canciones tengan metadata completa
@@ -45,6 +46,9 @@ pipeline import datos.json
 
 # Exportar estado
 pipeline export --output estado.json
+
+# Combinar playlists de múltiples plataformas
+pipeline merge --platforms soundcloud suno --name "Mi Colección Completa" --output merged.json
 ```
 
 ### Como Librería Python
@@ -102,6 +106,34 @@ spotify.authenticate({
 
 # Obtener playlists
 playlists = spotify.get_playlists()
+```
+
+### Combinar Playlists de Múltiples Plataformas
+
+```python
+from pipeline.dashboard import Dashboard
+from pipeline.models.track import Platform
+from pipeline.models.playlist import Playlist
+
+# Crear dashboard y añadir playlists
+dashboard = Dashboard()
+
+# Añadir playlists de SoundCloud y Suno
+# (después de obtenerlas de los conectores o importarlas)
+dashboard.add_playlist(soundcloud_playlist)
+dashboard.add_playlist(suno_playlist)
+
+# Combinar playlists de ambas plataformas
+merged_playlist = dashboard.merge_playlists(
+    platforms=[Platform.SOUNDCLOUD, Platform.SUNO],
+    merged_name="Mi Colección Completa"
+)
+
+# El playlist combinado mantiene el orden original y elimina duplicados
+print(f"Total de canciones: {merged_playlist.get_track_count()}")
+
+# También puedes combinar dos playlists directamente
+merged = playlist1.merge_with(playlist2)
 ```
 
 ## Estructura del Proyecto
