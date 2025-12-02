@@ -266,3 +266,34 @@ class Dashboard:
             Playlist.from_dict(p) for p in data.get("playlists", [])
         ]
         self.state.last_sync_time = data.get("last_sync_time")
+    
+    def merge_playlists(
+        self, 
+        platforms: List[Platform], 
+        merged_name: str = "Merged Playlist"
+    ) -> Playlist:
+        """
+        Merge playlists from specified platforms into a single playlist.
+        
+        This is useful for combining music from different sources (e.g., SoundCloud
+        and Suno) while maintaining track order and removing duplicates.
+        
+        Args:
+            platforms: List of platforms whose playlists should be merged
+            merged_name: Name for the merged playlist
+            
+        Returns:
+            A new merged Playlist
+        """
+        playlists_to_merge = [
+            playlist for playlist in self.state.playlists 
+            if playlist.platform in platforms
+        ]
+        
+        if not playlists_to_merge:
+            raise ValueError(f"No playlists found for platforms: {[p.value for p in platforms]}")
+        
+        merged = self.sync_service.merge_playlists(playlists_to_merge, merged_name)
+        self.add_playlist(merged)
+        
+        return merged

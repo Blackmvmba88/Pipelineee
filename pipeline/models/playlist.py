@@ -55,6 +55,47 @@ class Playlist:
         """Find all tracks that are incomplete."""
         return [track for track in self.tracks if not track.is_complete()]
     
+    def merge_with(self, other: "Playlist", preserve_order: bool = True) -> "Playlist":
+        """
+        Merge this playlist with another playlist.
+        
+        Creates a new playlist containing tracks from both playlists.
+        Duplicate tracks (based on title, artist, and duration) are not added twice.
+        The order of tracks is preserved: first all tracks from this playlist,
+        then new tracks from the other playlist.
+        
+        Args:
+            other: Another playlist to merge with
+            preserve_order: If True, maintains the order of tracks (default True)
+            
+        Returns:
+            A new Playlist containing merged tracks
+        """
+        merged = Playlist(
+            name=f"{self.name} + {other.name}",
+            platform=self.platform,
+            platform_id=f"{self.platform_id}_merged",
+            description=f"Merged from {self.name} ({self.platform.value}) and {other.name} ({other.platform.value})",
+        )
+        
+        # Add all tracks from this playlist
+        for track in self.tracks:
+            merged.add_track(track)
+        
+        # Add tracks from other playlist that aren't duplicates
+        for other_track in other.tracks:
+            is_duplicate = False
+            for existing_track in merged.tracks:
+                # Check if track already exists (using default tolerance of 3 seconds)
+                if other_track.matches(existing_track, tolerance_ms=3000):
+                    is_duplicate = True
+                    break
+            
+            if not is_duplicate:
+                merged.add_track(other_track)
+        
+        return merged
+    
     def to_dict(self) -> dict:
         """Convert playlist to dictionary representation."""
         return {

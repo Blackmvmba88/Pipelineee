@@ -235,3 +235,46 @@ class SyncService:
                 )
         
         return reports
+    
+    def merge_playlists(
+        self, 
+        playlists: List[Playlist], 
+        merged_name: str = "Merged Playlist"
+    ) -> Playlist:
+        """
+        Merge multiple playlists into a single playlist.
+        
+        Tracks are added in order from each playlist. Duplicates are removed
+        based on track matching (title, artist, duration).
+        
+        Args:
+            playlists: List of playlists to merge
+            merged_name: Name for the merged playlist
+            
+        Returns:
+            A new Playlist containing all unique tracks from input playlists
+        """
+        if not playlists:
+            raise ValueError("Cannot merge empty list of playlists")
+        
+        # Start with the first playlist
+        merged = Playlist(
+            name=merged_name,
+            platform=playlists[0].platform,
+            platform_id="merged",
+            description=f"Merged from {len(playlists)} playlists",
+        )
+        
+        # Merge each playlist
+        for playlist in playlists:
+            for track in playlist.tracks:
+                is_duplicate = False
+                for existing_track in merged.tracks:
+                    if track.matches(existing_track, self.tolerance_ms):
+                        is_duplicate = True
+                        break
+                
+                if not is_duplicate:
+                    merged.add_track(track)
+        
+        return merged
