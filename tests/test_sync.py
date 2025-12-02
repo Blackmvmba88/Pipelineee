@@ -249,3 +249,69 @@ class TestSyncService:
         
         assert "spotify_vs_suno" in reports
         assert reports["spotify_vs_suno"].matched_tracks == 1
+    
+    def test_merge_playlists(self):
+        """Test merging multiple playlists with SyncService."""
+        service = SyncService()
+        
+        # Create first playlist
+        playlist1 = Playlist(
+            name="SoundCloud",
+            platform=Platform.SOUNDCLOUD,
+            platform_id="sc1",
+        )
+        playlist1.add_track(Track(
+            title="Song 1",
+            artist="Artist",
+            platform=Platform.SOUNDCLOUD,
+            platform_id="sc1",
+            duration_ms=180000,
+        ))
+        playlist1.add_track(Track(
+            title="Song 2",
+            artist="Artist",
+            platform=Platform.SOUNDCLOUD,
+            platform_id="sc2",
+            duration_ms=200000,
+        ))
+        
+        # Create second playlist
+        playlist2 = Playlist(
+            name="Suno",
+            platform=Platform.SUNO,
+            platform_id="suno1",
+        )
+        playlist2.add_track(Track(
+            title="Song 2",  # Duplicate
+            artist="Artist",
+            platform=Platform.SUNO,
+            platform_id="suno2",
+            duration_ms=200000,
+        ))
+        playlist2.add_track(Track(
+            title="Song 3",
+            artist="Artist",
+            platform=Platform.SUNO,
+            platform_id="suno3",
+            duration_ms=220000,
+        ))
+        
+        merged = service.merge_playlists(
+            [playlist1, playlist2], 
+            "Merged Playlist"
+        )
+        
+        assert merged.name == "Merged Playlist"
+        assert merged.get_track_count() == 3  # 1, 2, 3 (no duplicate)
+        
+        # Check order is preserved
+        assert merged.tracks[0].title == "Song 1"
+        assert merged.tracks[1].title == "Song 2"
+        assert merged.tracks[2].title == "Song 3"
+    
+    def test_merge_playlists_empty_list(self):
+        """Test merging empty list raises error."""
+        service = SyncService()
+        
+        with pytest.raises(ValueError, match="Cannot merge empty list"):
+            service.merge_playlists([], "Test")

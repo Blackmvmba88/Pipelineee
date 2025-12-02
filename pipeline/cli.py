@@ -96,6 +96,30 @@ def main():
         help="Output file path"
     )
     
+    # Merge command
+    merge_parser = subparsers.add_parser(
+        "merge",
+        help="Merge playlists from multiple platforms"
+    )
+    merge_parser.add_argument(
+        "--platforms",
+        nargs="+",
+        choices=["spotify", "suno", "soundcloud"],
+        required=True,
+        help="Platforms whose playlists to merge"
+    )
+    merge_parser.add_argument(
+        "--name",
+        type=str,
+        default="Merged Playlist",
+        help="Name for the merged playlist"
+    )
+    merge_parser.add_argument(
+        "--output",
+        type=str,
+        help="Optional: Output file to save merged playlist"
+    )
+    
     args = parser.parse_args()
     
     if args.command is None:
@@ -114,6 +138,8 @@ def main():
         return cmd_import(dashboard, args)
     elif args.command == "export":
         return cmd_export(dashboard, args)
+    elif args.command == "merge":
+        return cmd_merge(dashboard, args)
     
     return 0
 
@@ -209,6 +235,47 @@ def cmd_export(dashboard: Dashboard, args) -> int:
         print(f"Exported to: {args.output}")
     except Exception as e:
         print(f"Error exporting data: {e}")
+        return 1
+    
+    return 0
+
+
+def cmd_merge(dashboard: Dashboard, args) -> int:
+    """Handle the merge command."""
+    # Convert platform strings to Platform enums
+    platforms = [Platform(p) for p in args.platforms]
+    
+    print(f"Merging playlists from platforms: {', '.join(args.platforms)}")
+    
+    try:
+        merged = dashboard.merge_playlists(platforms, args.name)
+        
+        print(f"\nMerge successful!")
+        print(f"Merged playlist: {merged.name}")
+        print(f"Total tracks: {merged.get_track_count()}")
+        print(f"Total duration: {merged.get_total_duration_ms() // 1000 // 60} minutes")
+        
+        # Show tracks by platform
+        platform_counts = {}
+        for track in merged.tracks:
+            platform = track.platform.value
+            platform_counts[platform] = platform_counts.get(platform, 0) + 1
+        
+        print(f"\nTracks by platform:")
+        for platform, count in platform_counts.items():
+            print(f"  {platform}: {count} tracks")
+        
+        # Save to file if requested
+        if args.output:
+            output_path = Path(args.output)
+            output_path.write_text(json.dumps(merged.to_dict(), indent=2))
+            print(f"\nMerged playlist saved to: {args.output}")
+    
+    except ValueError as e:
+        print(f"Error: {e}")
+        return 1
+    except Exception as e:
+        print(f"Error merging playlists: {e}")
         return 1
     
     return 0

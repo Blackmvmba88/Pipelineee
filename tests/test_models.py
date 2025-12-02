@@ -334,3 +334,96 @@ class TestPlaylist:
         assert restored.platform == Platform.SPOTIFY
         assert restored.get_track_count() == 1
         assert restored.tracks[0].title == "Song"
+    
+    def test_playlist_merge_with(self):
+        """Test merging two playlists."""
+        # Create first playlist
+        playlist1 = Playlist(
+            name="SoundCloud Playlist",
+            platform=Platform.SOUNDCLOUD,
+            platform_id="sc1",
+        )
+        playlist1.add_track(Track(
+            title="Song A",
+            artist="Artist 1",
+            platform=Platform.SOUNDCLOUD,
+            platform_id="sc_a",
+            duration_ms=180000,
+        ))
+        playlist1.add_track(Track(
+            title="Song B",
+            artist="Artist 2",
+            platform=Platform.SOUNDCLOUD,
+            platform_id="sc_b",
+            duration_ms=200000,
+        ))
+        
+        # Create second playlist
+        playlist2 = Playlist(
+            name="Suno Playlist",
+            platform=Platform.SUNO,
+            platform_id="suno1",
+        )
+        playlist2.add_track(Track(
+            title="Song B",  # Duplicate
+            artist="Artist 2",
+            platform=Platform.SUNO,
+            platform_id="suno_b",
+            duration_ms=200000,
+        ))
+        playlist2.add_track(Track(
+            title="Song C",
+            artist="Artist 3",
+            platform=Platform.SUNO,
+            platform_id="suno_c",
+            duration_ms=220000,
+        ))
+        
+        # Merge playlists
+        merged = playlist1.merge_with(playlist2)
+        
+        # Check merged playlist
+        assert merged.name == "SoundCloud Playlist + Suno Playlist"
+        assert merged.get_track_count() == 3  # A, B (no duplicate), C
+        
+        # Check order is preserved
+        assert merged.tracks[0].title == "Song A"
+        assert merged.tracks[1].title == "Song B"
+        assert merged.tracks[2].title == "Song C"
+        
+        # Check platforms are preserved
+        assert merged.tracks[0].platform == Platform.SOUNDCLOUD
+        assert merged.tracks[1].platform == Platform.SOUNDCLOUD
+        assert merged.tracks[2].platform == Platform.SUNO
+    
+    def test_playlist_merge_with_no_duplicates(self):
+        """Test merging playlists with no duplicates."""
+        playlist1 = Playlist(
+            name="Playlist 1",
+            platform=Platform.SPOTIFY,
+            platform_id="p1",
+        )
+        playlist1.add_track(Track(
+            title="Song 1",
+            artist="Artist",
+            platform=Platform.SPOTIFY,
+            platform_id="t1",
+            duration_ms=180000,
+        ))
+        
+        playlist2 = Playlist(
+            name="Playlist 2",
+            platform=Platform.SOUNDCLOUD,
+            platform_id="p2",
+        )
+        playlist2.add_track(Track(
+            title="Song 2",
+            artist="Artist",
+            platform=Platform.SOUNDCLOUD,
+            platform_id="t2",
+            duration_ms=200000,
+        ))
+        
+        merged = playlist1.merge_with(playlist2)
+        
+        assert merged.get_track_count() == 2
