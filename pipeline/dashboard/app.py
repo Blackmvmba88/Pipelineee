@@ -224,6 +224,35 @@ class Dashboard:
             incomplete.extend(playlist.find_incomplete_tracks())
         return incomplete
     
+    def get_suno_tracks(self) -> List[Track]:
+        """
+        Get all tracks from Suno platform.
+        
+        Returns:
+            List of all Suno tracks from all playlists
+        """
+        suno_tracks = []
+        for playlist in self.state.playlists:
+            if playlist.platform == Platform.SUNO:
+                suno_tracks.extend(playlist.tracks)
+        return suno_tracks
+    
+    def get_tracks_by_platform(self, platform: Platform) -> List[Track]:
+        """
+        Get all tracks from a specific platform.
+        
+        Args:
+            platform: Platform to filter tracks by
+            
+        Returns:
+            List of tracks from the specified platform
+        """
+        platform_tracks = []
+        for playlist in self.state.playlists:
+            if playlist.platform == platform:
+                platform_tracks.extend(playlist.tracks)
+        return platform_tracks
+    
     def export_state(self) -> Dict[str, Any]:
         """
         Export the current dashboard state.

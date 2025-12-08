@@ -45,6 +45,12 @@ pipeline import datos.json
 
 # Exportar estado
 pipeline export --output estado.json
+
+# Listar música de Suno
+pipeline list-suno                              # Formato texto
+pipeline list-suno --format markdown            # Formato Markdown
+pipeline list-suno --format json                # Formato JSON
+pipeline list-suno --output suno_tracks.md      # Guardar en archivo
 ```
 
 ### Como Librería Python
@@ -80,6 +86,13 @@ dashboard.add_playlist(playlist)
 # Obtener vistas del dashboard
 library_view = dashboard.get_library_view()
 distribution_view = dashboard.get_distribution_view()
+
+# Obtener todas las canciones de Suno
+suno_tracks = dashboard.get_suno_tracks()
+print(f"Canciones de Suno: {len(suno_tracks)}")
+
+# Obtener canciones por plataforma
+spotify_tracks = dashboard.get_tracks_by_platform(Platform.SPOTIFY)
 
 # Generar reporte
 report = dashboard.generate_report(format="markdown")
