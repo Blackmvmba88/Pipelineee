@@ -122,11 +122,3 @@ def test_get_tracks_by_platform():
     soundcloud_tracks = dashboard.get_tracks_by_platform(Platform.SOUNDCLOUD)
     assert len(soundcloud_tracks) == 1
     assert soundcloud_tracks[0].title == "SoundCloud Track"
-
-
-if __name__ == "__main__":
-    # Run tests
-    test_get_suno_tracks()
-    test_get_suno_tracks_empty()
-    test_get_tracks_by_platform()
-    print("All tests passed!")

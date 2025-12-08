@@ -245,8 +245,9 @@ class Dashboard:
         """
         platform_tracks = []
         for playlist in self.state.playlists:
-            if playlist.platform == platform:
-                platform_tracks.extend(playlist.tracks)
+            for track in playlist.tracks:
+                if track.platform == platform:
+                    platform_tracks.append(track)
         return platform_tracks
     
     def export_state(self) -> Dict[str, Any]:
