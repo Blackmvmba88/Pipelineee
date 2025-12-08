@@ -300,6 +300,21 @@ def cmd_merge(dashboard: Dashboard, args) -> int:
     return 0
 
 
+def _format_duration(duration_ms: int) -> str:
+    """
+    Format duration from milliseconds to MM:SS format.
+    
+    Args:
+        duration_ms: Duration in milliseconds
+        
+    Returns:
+        Formatted duration string (e.g., "3:45")
+    """
+    duration_min = duration_ms // 1000 // 60
+    duration_sec = (duration_ms // 1000) % 60
+    return f"{duration_min}:{duration_sec:02d}"
+
+
 def cmd_list_suno(dashboard: Dashboard, args) -> int:
     """Handle the list-suno command."""
     suno_tracks = dashboard.get_suno_tracks()
@@ -330,10 +345,8 @@ def cmd_list_suno(dashboard: Dashboard, args) -> int:
         ]
         
         for i, track in enumerate(suno_tracks, 1):
-            duration_min = track.duration_ms // 1000 // 60
-            duration_sec = (track.duration_ms // 1000) % 60
             lines.append(f"{i}. **{track.title}** - {track.artist}")
-            lines.append(f"   - Duration: {duration_min}:{duration_sec:02d}")
+            lines.append(f"   - Duration: {_format_duration(track.duration_ms)}")
             if track.album:
                 lines.append(f"   - Album: {track.album}")
             if track.metadata.get("prompt"):
@@ -354,10 +367,8 @@ def cmd_list_suno(dashboard: Dashboard, args) -> int:
         ]
         
         for i, track in enumerate(suno_tracks, 1):
-            duration_min = track.duration_ms // 1000 // 60
-            duration_sec = (track.duration_ms // 1000) % 60
             lines.append(f"{i}. {track.title} - {track.artist}")
-            lines.append(f"   Duration: {duration_min}:{duration_sec:02d}")
+            lines.append(f"   Duration: {_format_duration(track.duration_ms)}")
             if track.album:
                 lines.append(f"   Album: {track.album}")
             if track.platform_id:

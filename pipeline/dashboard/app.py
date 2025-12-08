@@ -231,11 +231,7 @@ class Dashboard:
         Returns:
             List of all Suno tracks from all playlists
         """
-        suno_tracks = []
-        for playlist in self.state.playlists:
-            if playlist.platform == Platform.SUNO:
-                suno_tracks.extend(playlist.tracks)
-        return suno_tracks
+        return self.get_tracks_by_platform(Platform.SUNO)
     
     def get_tracks_by_platform(self, platform: Platform) -> List[Track]:
         """
