@@ -1,4 +1,4 @@
-"""Test for get_suno_tracks functionality."""
+"""Tests for get_suno_tracks functionality."""
 
 from pipeline.models.track import Track, Platform
 from pipeline.models.playlist import Playlist

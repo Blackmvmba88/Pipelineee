@@ -305,13 +305,17 @@ def _format_duration(duration_ms: int) -> str:
     Format duration from milliseconds to MM:SS format.
     
     Args:
-        duration_ms: Duration in milliseconds
+        duration_ms: Duration in milliseconds (non-negative)
         
     Returns:
         Formatted duration string (e.g., "3:45")
     """
-    duration_min = duration_ms // 1000 // 60
-    duration_sec = (duration_ms // 1000) % 60
+    if duration_ms < 0:
+        duration_ms = 0
+    
+    seconds = duration_ms // 1000
+    duration_min = seconds // 60
+    duration_sec = seconds % 60
     return f"{duration_min}:{duration_sec:02d}"
 
 
