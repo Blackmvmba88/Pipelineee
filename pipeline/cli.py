@@ -120,6 +120,23 @@ def main():
         help="Optional: Output file to save merged playlist"
     )
     
+    # List Suno command
+    list_suno_parser = subparsers.add_parser(
+        "list-suno",
+        help="List all Suno music tracks"
+    )
+    list_suno_parser.add_argument(
+        "--format",
+        choices=["text", "json", "markdown"],
+        default="text",
+        help="Output format"
+    )
+    list_suno_parser.add_argument(
+        "--output",
+        type=str,
+        help="Optional: Output file to save the list"
+    )
+    
     args = parser.parse_args()
     
     if args.command is None:
@@ -140,6 +157,8 @@ def main():
         return cmd_export(dashboard, args)
     elif args.command == "merge":
         return cmd_merge(dashboard, args)
+    elif args.command == "list-suno":
+        return cmd_list_suno(dashboard, args)
     
     return 0
 
@@ -277,6 +296,102 @@ def cmd_merge(dashboard: Dashboard, args) -> int:
     except Exception as e:
         print(f"Error merging playlists: {e}")
         return 1
+    
+    return 0
+
+
+def _format_duration(duration_ms: int) -> str:
+    """
+    Format duration from milliseconds to MM:SS format.
+    
+    Args:
+        duration_ms: Duration in milliseconds (non-negative)
+        
+    Returns:
+        Formatted duration string (e.g., "3:45")
+    """
+    if duration_ms < 0:
+        duration_ms = 0
+    
+    seconds = duration_ms // 1000
+    duration_min = seconds // 60
+    duration_sec = seconds % 60
+    return f"{duration_min}:{duration_sec:02d}"
+
+
+def cmd_list_suno(dashboard: Dashboard, args) -> int:
+    """Handle the list-suno command."""
+    suno_tracks = dashboard.get_suno_tracks()
+    
+    if not suno_tracks:
+        print("No Suno tracks found. Import playlists first.")
+        return 0
+    
+    # Format output based on the requested format
+    output_content = None
+    
+    if args.format == "json":
+        output_content = json.dumps(
+            {
+                "total_tracks": len(suno_tracks),
+                "tracks": [track.to_dict() for track in suno_tracks]
+            },
+            indent=2
+        )
+    elif args.format == "markdown":
+        lines = [
+            "# Suno Music List",
+            "",
+            f"**Total Tracks:** {len(suno_tracks)}",
+            "",
+            "## Tracks",
+            ""
+        ]
+        
+        for i, track in enumerate(suno_tracks, 1):
+            lines.append(f"{i}. **{track.title}** - {track.artist}")
+            lines.append(f"   - Duration: {_format_duration(track.duration_ms)}")
+            if track.album:
+                lines.append(f"   - Album: {track.album}")
+            if track.metadata.get("prompt"):
+                lines.append(f"   - Prompt: {track.metadata['prompt']}")
+            if track.metadata.get("style"):
+                lines.append(f"   - Style: {track.metadata['style']}")
+            lines.append("")
+        
+        output_content = "\n".join(lines)
+    else:  # text format
+        lines = [
+            "=" * 60,
+            "SUNO MUSIC LIST",
+            "=" * 60,
+            f"Total Tracks: {len(suno_tracks)}",
+            "=" * 60,
+            ""
+        ]
+        
+        for i, track in enumerate(suno_tracks, 1):
+            lines.append(f"{i}. {track.title} - {track.artist}")
+            lines.append(f"   Duration: {_format_duration(track.duration_ms)}")
+            if track.album:
+                lines.append(f"   Album: {track.album}")
+            if track.platform_id:
+                lines.append(f"   ID: {track.platform_id}")
+            if track.metadata.get("prompt"):
+                lines.append(f"   Prompt: {track.metadata['prompt']}")
+            if track.metadata.get("style"):
+                lines.append(f"   Style: {track.metadata['style']}")
+            lines.append("")
+        
+        output_content = "\n".join(lines)
+    
+    # Output to file or console
+    if args.output:
+        output_path = Path(args.output)
+        output_path.write_text(output_content)
+        print(f"Suno music list saved to: {args.output}")
+    else:
+        print(output_content)
     
     return 0
 
